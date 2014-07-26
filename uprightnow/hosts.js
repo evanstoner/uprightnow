@@ -17,7 +17,7 @@ exports.findHost = function(req, res) {
 };
 
 exports.createHost = function(req, res) {
-  commonq.create(req, res, Host, 'hosts', req.body.host);
+  commonq.create(req, res, Host, 'host', req.body.host);
 };
 
 exports.updateHost = function(req, res) {
