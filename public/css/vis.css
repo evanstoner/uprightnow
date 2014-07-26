@@ -1,0 +1,7 @@
+g.host circle {
+  stroke-width: 4px;
+}
+
+g.host text {
+  fill: #eee;
+}
