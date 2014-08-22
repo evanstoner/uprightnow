@@ -7,7 +7,11 @@ var Mixed    = Schema.Types.Mixed;
 var Host = new Schema({
   name:    String,
   address: { type: String, required: true }, //TODO: Host.address validation
-  score:   { type: Number, min: -1, max: 1, default: 0 },
+  history: [{
+    time:  { type: Date, required: true },
+    error: Mixed,
+    rtt:   Number
+  }]
 });
 
 exports.Host = Host;

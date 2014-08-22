@@ -38,12 +38,15 @@ router.route('/hosts')
   .get(hosts.findHosts)
   .post(hosts.createHost);
 
+router.route('/hosts/ping')
+  .get(hosts.pingAll);
+
 router.route('/hosts/:host_id')
   .get(hosts.findHost)
   .put(hosts.updateHost);
 
 router.route('/hosts/:host_id/ping')
-  .get(hosts.ping);
+  .get(hosts.pingOne);
 
 
 app.use('/uprightnow', router);

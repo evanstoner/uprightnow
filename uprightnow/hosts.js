@@ -2,11 +2,9 @@ var mongoose = require('mongoose');
 var ping     = require('net-ping');
 var commonq  = require('./commonQueries');
 var reply    = require('./reply');
+var config   = require('../config');
 
 var Host = mongoose.model('Host');
-
-var PING_ERROR_EFFECT = -0.1;
-var PING_SUCCESS_EFFECT = 0.1;
 
 exports.findHosts = function(req, res) {
   commonq.find(req, res, Host, 'hosts');
@@ -24,7 +22,11 @@ exports.updateHost = function(req, res) {
   commonq.update(req, res, Host, 'hosts', req.params.host_id, req.body.host);
 };
 
-exports.ping = function(req, res) {
+exports.pingAll = function(req, res) {
+
+};
+
+exports.pingOne = function(req, res) {
   Host.findById(req.params.host_id, function(err, host) {
     if (err) {
       reply.error(res, err);
@@ -38,27 +40,25 @@ exports.ping = function(req, res) {
       });
 
       session.pingHost(host.address, function(err, target, sendTime, receiveTime) {
-        host.score = host.score || 0;
+        host.history = host.history || [];
+        var historyPoint = { time: new Date() };
         if (err) {
-          host.score += PING_ERROR_EFFECT;
-          reply.success(res, {
-            error: err,
-            host: host
-          });
+          historyPoint.error = err;
+          if (config.DEBUG) console.log('- ' + host.name + '(' + host.address + '): ' + err);
         } else {
-          host.score += PING_SUCCESS_EFFECT;
-          reply.success(res, {
-            ping: { rtt:  receiveTime - sendTime } ,
-            host: host
-          });
+          historyPoint.rtt = receiveTime - sendTime;
+          if (config.DEBUG) console.log('+ ' + host.name + '(' + host.address + '): ' + historyPoint.rtt);
         }
 
-        //TODO: do we want to perform this clamping before responding?
-        if (host.score < -1) {
-          host.score = -1;
-        } else if (host.score > 1) {
-          host.score = 1;
+        host.history.push(historyPoint);
+        while (host.history.length > config.HISTORY_LIMIT) {
+          host.history.shift();
+          host.markModified('history');
         }
+        
+        reply.success(res, {
+          host: host
+        });
 
         host.save();
       });

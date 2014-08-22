@@ -11,6 +11,9 @@ var colorScale = d3.scale.linear().domain([-1, 0, 1]).range(['#a00', '#aaa', '#0
 var hostFormVisible = false;
 var editingHost;
 
+var SUCCESS_EFFECT = 0.1;
+var ERROR_EFFECT = -0.5;
+
 $(function() {
   $('#newHost').click(function() {
     if (hostFormVisible)
@@ -141,7 +144,8 @@ function pingHosts() {
   $.each(hosts, function(i, host) {
 
     $.getJSON('uprightnow/hosts/' + host._id + '/ping', function(data) {
-      host.score = data.host.score;
+      host.history = data.host.history;
+      host.score = scoreOf(host);
 
       d3.select('#_' + host._id).select('circle').transition()
         .attr('fill', function(d) { return colorScale(d.score); })
@@ -149,4 +153,20 @@ function pingHosts() {
     });
   });
   setTimeout(pingHosts, 1000);
+}
+
+function scoreOf(host) {
+  var score = 0;
+  for (var i = 0; i < host.history.length; i++) {
+    if (host.history[i].error) {
+      score += ERROR_EFFECT;
+    } else {
+      score += SUCCESS_EFFECT;
+    }
+  }
+  
+//  if (score < -1) score = -1;
+//  else if (score > 1) score = 1;
+  console.log('score for %s is %d', host.name, host.score);
+  return score;
 }

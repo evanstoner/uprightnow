@@ -8,7 +8,7 @@ var packagePayload = function(key, value) {
 
 exports.find = function(req, res, model, key, query) {
   query = query || {};
-  model.find({}, function(err, results) {
+  model.find(query, function(err, results) {
     if (err) {
       reply.error(res, err);
     } else {
@@ -35,6 +35,16 @@ exports.update = function(req, res, model, key, id, data) {
       reply.error(res, err);
     } else {
       reply.success(res, packagePayload(key, doc));
+    }
+  });
+};
+
+exports.remove = function(req, res, model, id) {
+  model.findByIdAndRemove(id, function(err) {
+    if (err) {
+      reply.error(res, err);
+    } else {
+      reply.success(res);
     }
   });
 };
